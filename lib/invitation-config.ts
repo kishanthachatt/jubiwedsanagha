@@ -24,7 +24,6 @@ export type InvitationConfig = {
   invitationEyebrow: string;
   invitationBody: string;
   guestbookTitle: string;
-  guestbookTitleMl: string;
   closingMessage: string;
   musicPath: string;
   coupleIllustration: string;
