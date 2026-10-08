@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+:root {
+  --ivory: #f2e7d8;
+  --cream: #faf6ef;
+  --dusty-rose: #c07a67;
+  --deep-rose: #934e3b;
+  --soft-blush: #d39a88;
+  --champagne: #ddbd94;
+  --muted-mauve: #b8a0a0;
+  --plum: #5a3158;
+  --deep-plum: #3f203f;
+  --espresso: #3a241c;
+  --burgundy: #6f392e;
+}
+
+@theme inline {
+  --color-ivory: var(--ivory);
+  --color-cream: var(--cream);
+  --color-dusty-rose: var(--dusty-rose);
+  --color-deep-rose: var(--deep-rose);
+  --color-soft-blush: var(--soft-blush);
+  --color-champagne: var(--champagne);
+  --color-muted-mauve: var(--muted-mauve);
+  --color-plum: var(--plum);
+  --color-deep-plum: var(--deep-plum);
+  --color-espresso: var(--espresso);
+  --color-burgundy: var(--burgundy);
+  --font-sans: var(--font-outfit);
+  --font-serif: var(--font-cormorant);
+  --font-malayalam: var(--font-malayalam);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--ivory);
+  color: var(--espresso);
+  font-family: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-serif {
+  font-family: var(--font-cormorant), "Palatino Linotype", Palatino, serif;
+}
+
+.font-malayalam {
+  font-family: var(--font-malayalam), "Noto Serif Malayalam", serif;
+}
+
+.grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
