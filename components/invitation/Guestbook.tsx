@@ -35,12 +35,14 @@ export function Guestbook({ config }: { config: InvitationConfig }) {
 
     let active = true;
 
-    async function loadAllWishes() {
+    async function loadAllWishes(
+      client: NonNullable<ReturnType<typeof getSupabase>>,
+    ) {
       const allWishes: Wish[] = [];
       let from = 0;
 
       while (true) {
-        const { data, error: fetchError } = await supabase
+        const { data, error: fetchError } = await client
           .from("wishes")
           .select("id, name, message, created_at")
           .order("created_at", { ascending: false })
@@ -67,7 +69,7 @@ export function Guestbook({ config }: { config: InvitationConfig }) {
       }
     }
 
-    void loadAllWishes();
+    void loadAllWishes(supabase);
 
     const channel = supabase
       .channel("wishes-feed")
