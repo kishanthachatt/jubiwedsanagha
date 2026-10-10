@@ -2,34 +2,72 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { getSupabase, isSupabaseConfigured, type Wish } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { SectionReveal } from "@/components/invitation/SectionReveal";
 import type { InvitationConfig } from "@/lib/invitation-config";
 
 const RATE_LIMIT_MS = 45_000;
+const WISHES_PAGE_SIZE = 1000;
+const WISHES_PER_SLIDE = 3;
 
 export function Guestbook({ config }: { config: InvitationConfig }) {
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [wishes, setWishes] = useState<Wish[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [loadError, setLoadError] = useState(false);
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [error, setError] = useState("");
   const configured = isSupabaseConfigured();
+  const slideCount = Math.ceil(wishes.length / WISHES_PER_SLIDE);
+  const activeSlide = Math.min(currentSlide, Math.max(slideCount - 1, 0));
+  const visibleWishes = wishes.slice(
+    activeSlide * WISHES_PER_SLIDE,
+    (activeSlide + 1) * WISHES_PER_SLIDE,
+  );
 
   useEffect(() => {
     const supabase = getSupabase();
     if (!supabase) return;
 
-    supabase
-      .from("wishes")
-      .select("id, name, message, created_at")
-      .order("created_at", { ascending: false })
-      .limit(40)
-      .then(({ data }) => {
-        if (data) setWishes(data as Wish[]);
-      });
+    let active = true;
+
+    async function loadAllWishes() {
+      const allWishes: Wish[] = [];
+      let from = 0;
+
+      while (true) {
+        const { data, error: fetchError } = await supabase
+          .from("wishes")
+          .select("id, name, message, created_at")
+          .order("created_at", { ascending: false })
+          .range(from, from + WISHES_PAGE_SIZE - 1);
+
+        if (fetchError || !data) {
+          if (active) setLoadError(true);
+          return;
+        }
+
+        allWishes.push(...(data as Wish[]));
+        if (data.length < WISHES_PAGE_SIZE) break;
+        from += WISHES_PAGE_SIZE;
+      }
+
+      if (active) {
+        setWishes((current) => {
+          const byId = new Map(allWishes.map((wish) => [wish.id, wish]));
+          for (const wish of current) byId.set(wish.id, wish);
+          return [...byId.values()].sort(
+            (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at),
+          );
+        });
+      }
+    }
+
+    void loadAllWishes();
 
     const channel = supabase
       .channel("wishes-feed")
@@ -37,12 +75,18 @@ export function Guestbook({ config }: { config: InvitationConfig }) {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "wishes" },
         (payload) => {
-          setWishes((current) => [payload.new as Wish, ...current]);
+          const newWish = payload.new as Wish;
+          setWishes((current) =>
+            current.some((wish) => wish.id === newWish.id)
+              ? current
+              : [newWish, ...current],
+          );
         },
       )
       .subscribe();
 
     return () => {
+      active = false;
       void supabase.removeChannel(channel);
     };
   }, []);
@@ -160,22 +204,74 @@ export function Guestbook({ config }: { config: InvitationConfig }) {
         </Button>
       </form>
 
-      <div className="mx-auto mt-12 max-w-lg space-y-4">
-        <AnimatePresence initial={false}>
-          {wishes.map((wish) => (
-            <motion.article
-              key={wish.id}
-              layout
-              initial={{ opacity: 0, y: -12 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="rounded-2xl border border-champagne/70 bg-cream/50 px-5 py-4 text-left"
-            >
-              <p className="font-serif text-lg text-deep-plum">{wish.name}</p>
-              <p className="mt-1 text-espresso/90">{wish.message}</p>
-            </motion.article>
-          ))}
-        </AnimatePresence>
-      </div>
+      <section
+        aria-labelledby="all-wishes-heading"
+        className="mx-auto mt-14 max-w-2xl border-t border-champagne/60 pt-10"
+      >
+        <h3 id="all-wishes-heading" className="font-serif text-2xl text-deep-plum">
+          All Wishes
+        </h3>
+        <p className="mt-2 text-sm text-burgundy/80">
+          {wishes.length} {wishes.length === 1 ? "wish" : "wishes"} shared by family and friends
+        </p>
+        {loadError ? (
+          <p className="mt-6 text-sm text-deep-rose" role="status">
+            Wishes could not be loaded. Please refresh to try again.
+          </p>
+        ) : null}
+        {wishes.length > 0 ? (
+          <>
+            <div className="mt-6 overflow-hidden">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={activeSlide}
+                  className="grid gap-4 md:grid-cols-3"
+                  initial={{ opacity: 0, x: 24 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -24 }}
+                  transition={{ duration: 0.25 }}
+                  aria-live="polite"
+                >
+                  {visibleWishes.map((wish) => (
+                    <motion.article
+                      key={wish.id}
+                      className="h-full rounded-2xl border border-champagne/70 bg-cream/50 px-5 py-4 text-left"
+                    >
+                      <p className="font-serif text-lg text-deep-plum">{wish.name}</p>
+                      <p className="mt-1 text-espresso/90">{wish.message}</p>
+                    </motion.article>
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            {slideCount > 1 ? (
+              <div className="mt-6 flex items-center justify-center gap-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  aria-label="Previous wishes"
+                  onClick={() => setCurrentSlide((slide) => (slide - 1 + slideCount) % slideCount)}
+                >
+                  <ChevronLeft aria-hidden />
+                </Button>
+                <span className="min-w-20 text-sm text-burgundy/80" aria-live="polite">
+                  {activeSlide + 1} / {slideCount}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  aria-label="Next wishes"
+                  onClick={() => setCurrentSlide((slide) => (slide + 1) % slideCount)}
+                >
+                  <ChevronRight aria-hidden />
+                </Button>
+              </div>
+            ) : null}
+          </>
+        ) : (
+          <p className="mt-6 text-sm text-burgundy/70">Be the first to share a wish.</p>
+        )}
+      </section>
     </SectionReveal>
   );
 }

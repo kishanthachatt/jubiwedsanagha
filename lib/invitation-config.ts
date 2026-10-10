@@ -71,8 +71,6 @@ const shared = {
     "#JubinWedsAnagha",
     "#JubinAndAnagha",
     "#JubinAnagha",
-    "#JubinWedsAnagha2026",
-    "#ജുബിനനഘ",
   ],
 } satisfies Partial<InvitationConfig>;
 
@@ -97,12 +95,13 @@ export const invitationConfigs: Record<InvitationType, InvitationConfig> = {
     type: "reception",
     route: "/reception",
     title: "The Reception",
+    invitationBody: "We warmly invite you to join us for the evening reception.",
     seoTitle: "Jubin & Anagha — Wedding Reception",
     seoDescription:
-      "You are invited to the wedding reception of Jubin and Anagha on 1 November 2026 at Ayzen Convention Center, Ambalapadi, Eranhikkal.",
+      "You are invited to the wedding reception of Jubin and Anagha on 1 November 2026 at Ayzen Convention Centre, Ambalapadi, Eranhikkal.",
     startTime: "17:30",
     endTime: "21:30",
-    venue: "Ayzen Convention Center",
+    venue: "Ayzen Convention Centre",
     location: "Ambalapadi, Eranhikkal",
     mapsUrl: "https://maps.app.goo.gl/3uG8zGXJrUch9epZ6",
     calendarTitle: "Jubin & Anagha — Wedding Reception",

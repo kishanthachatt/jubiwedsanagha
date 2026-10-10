@@ -46,6 +46,11 @@ export function VenueSection({ config }: { config: InvitationConfig }) {
         >
           <h2 className="font-serif text-3xl sm:text-4xl text-deep-plum font-semibold">{config.venue}</h2>
           <p className="mt-3 text-burgundy/80 text-lg">{config.location}</p>
+          {config.type === "reception" ? (
+            <p className="mx-auto mt-5 max-w-xl font-serif text-base leading-relaxed text-espresso/90 sm:text-lg">
+              Marriage will be solemnised on 01.11.2026 (1202 Thulam 15) at Prince Auditorium, Kakkodi. Muhurtham between 11.00 AM &amp; 11.30 AM.
+            </p>
+          ) : null}
           
           {/* Map Container */}
           <motion.div

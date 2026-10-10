@@ -8,6 +8,7 @@ import { ClosingSection } from "@/components/invitation/ClosingSection";
 import { Countdown } from "@/components/invitation/Countdown";
 import { CoupleHero } from "@/components/invitation/CoupleHero";
 import { EventDetails } from "@/components/invitation/EventDetails";
+import { EventDetailsWithVenue } from "@/components/invitation/EventDetailsWithVenue";
 import { Gallery } from "@/components/invitation/Gallery";
 import { Guestbook } from "@/components/invitation/Guestbook";
 import { Hashtags } from "@/components/invitation/Hashtags";
@@ -17,7 +18,7 @@ import { OpeningInvitation } from "@/components/invitation/OpeningInvitation";
 import { ShareInvitation } from "@/components/invitation/ShareInvitation";
 import { VenueSection } from "@/components/invitation/VenueSection";
 
-export function InvitationShell({ config }: { config: InvitationConfig }) {
+export function InvitationShell({ config, receptionConfig }: { config: InvitationConfig; receptionConfig?: InvitationConfig }) {
   const [opened, setOpened] = useState(false);
   const music = useWeddingMusic(config.musicPath);
 
@@ -46,8 +47,18 @@ export function InvitationShell({ config }: { config: InvitationConfig }) {
         <CoupleHero config={config} />
         <Countdown config={config} />
         <InvitationMessage config={config} />
-        <EventDetails config={config} />
-        <VenueSection config={config} />
+        {receptionConfig && (
+          <>
+            <EventDetailsWithVenue config={config} />
+            <EventDetailsWithVenue config={receptionConfig} />
+          </>
+        )}
+        {!receptionConfig && (
+          <>
+            <EventDetails config={config} />
+            <VenueSection config={config} />
+          </>
+        )}
         <CalendarButtons config={config} />
         <Hashtags config={config} />
         <Guestbook config={config} />

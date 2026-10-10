@@ -9,8 +9,17 @@ import { SectionReveal } from "@/components/invitation/SectionReveal";
 export function ShareInvitation({ config }: { config: InvitationConfig }) {
   const [copied, setCopied] = useState(false);
 
+  function getCurrentRoute() {
+    if (typeof window === "undefined") return config.route;
+
+    const pathname = window.location.pathname.replace(/\/$/, "") || "/";
+    return pathname === "/wedding" || pathname === "/reception"
+      ? pathname
+      : config.route;
+  }
+
   async function onShare() {
-    const result = await shareInvitation(config.route);
+    const result = await shareInvitation(getCurrentRoute());
     if (result === "copied") {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1600);
@@ -18,11 +27,8 @@ export function ShareInvitation({ config }: { config: InvitationConfig }) {
   }
 
   async function onCopy() {
-    await copyText(
-      typeof window === "undefined"
-        ? config.route
-        : `${window.location.origin}${config.route}`,
-    );
+    const route = getCurrentRoute();
+    await copyText(typeof window === "undefined" ? route : `${window.location.origin}${route}`);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1600);
   }
@@ -40,7 +46,7 @@ export function ShareInvitation({ config }: { config: InvitationConfig }) {
         <Button type="button" variant="outline" onClick={onCopy}>
           {copied ? "Link copied ✓" : "Copy Invitation Link"}
         </Button>
-        <a href={whatsappShareUrl(config.route)} target="_blank" rel="noopener noreferrer">
+        <a href={whatsappShareUrl(getCurrentRoute())} target="_blank" rel="noopener noreferrer">
           <Button type="button" variant="outline">
             WhatsApp
           </Button>
